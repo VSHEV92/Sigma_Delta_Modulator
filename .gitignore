@@ -1,0 +1,6 @@
+AXI_Lite_UVM_Agent
+sigma_delta_modulator
+*.jou 
+*.log
+*.str
+.Xil
