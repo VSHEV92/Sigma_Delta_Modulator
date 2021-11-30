@@ -21,4 +21,6 @@ add_files [glob -nocomplain -- ./src_hdl/*.v] -quiet
 # добавляем файлы тестового окружения к проекту
 add_files -fileset sim_1 [glob -nocomplain -- ./src_tb/*.svh] -quiet
 add_files -fileset sim_1 [glob -nocomplain -- ./src_tb/*.sv] -quiet
+add_files -fileset sim_1 [glob -nocomplain -- ./AXI_Lite_UVM_Agent/src/*.svh] -quiet
+add_files -fileset sim_1 [glob -nocomplain -- ./AXI_Lite_UVM_Agent/src/*.sv] -quiet
 
