@@ -2,13 +2,13 @@
 //!
 //! **РЕГИСТРЫ**
 //!
-//! Enable
+//! Enable - регистр включения IP-ядра
 //! { reg: [
 //!     { bits: 1, name: "en"},
 //!     { bits: 31, name: "unused"},
 //! ] } 
 
-//! Value 
+//! Value - входное значение для модулятора (от 8 до 16 бит)
 //! { reg: [
 //!     { bits: 8, name: "used"},
 //!     { bits: 8, name: "may be used"},

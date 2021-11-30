@@ -57,7 +57,7 @@ task base_test::shutdown_phase(uvm_phase phase);
     phase.drop_objection(this);
 endtask
 
-task master_test::main_phase(uvm_phase phase);
+task base_test::main_phase(uvm_phase phase);
     phase.raise_objection(this);
         axi_lite_seqc.start(test_env_h.axi_lite_agent_h.axi_lite_sequencer_h);
     phase.drop_objection(this);

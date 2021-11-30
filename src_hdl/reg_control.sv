@@ -6,13 +6,13 @@
 //!
 //! **РЕГИСТРЫ**
 //!
-//! Enable
+//! Enable - регистр включения IP-ядра
 //! { reg: [
 //!     { bits: 1, name: "en"},
 //!     { bits: 31, name: "unused"},
 //! ] } 
 
-//! Value 
+//! Value - входное значение для модулятора (от 8 до 16 бит)
 //! { reg: [
 //!     { bits: 8, name: "used"},
 //!     { bits: 8, name: "may be used"},
@@ -75,18 +75,9 @@ module reg_control(
     //! флаги записи внутренних регистров
     logic update_regs_data;
 
-    //! WAIT_WR_TRANS - ожидание начала транзакции записи
-    //! WAIT_ADDR - данные получены, ожидание адреса
-    //! WAIT_DATA - получен корректный адрес, ожидание данных
-    //! WAIT_DATA_BAD - получен некорректный адрес, ожидание данных
-    //! SEND_RESP - успешная запись данных
-    //! SEND_RESP_BAD - неуспешная запись данных
+    //! состояния автомата записи
     enum {WAIT_WR_TRANS, WAIT_ADDR, WAIT_DATA, SEND_RESP, WAIT_DATA_BAD, SEND_RESP_BAD} write_state;
-
-    //! WAIT_RD_TRANS - ожидание начала транзакции чтения
-    //! CHECK_ADDR - проверка корректности адреса
-    //! SEND_DATA - успешная выдача данных
-    //! SEND_DATA_BAD - неуспешная выдача данных
+    //! состояния автомата чтения
     enum {WAIT_RD_TRANS, CHECK_ADDR, SEND_DATA, SEND_DATA_BAD} read_state;
 
     // -----------------------------------------------------------------------------------------------------------
@@ -115,7 +106,20 @@ module reg_control(
 
     // -----------------------------------------------------------------------------------------------------------
 
-    //! конченый автомат записи данных (write_state)   
+    //! конченый автомат записи данных (write_state)
+    //!
+    //! WAIT_WR_TRANS - ожидание начала транзакции записи
+    //!
+    //! WAIT_ADDR - данные получены, ожидание адреса
+    //!
+    //! WAIT_DATA - получен корректный адрес, ожидание данных
+    //!
+    //! WAIT_DATA_BAD - получен некорректный адрес, ожидание данных
+    //!
+    //! SEND_RESP - успешная запись данных
+    //!
+    //! SEND_RESP_BAD - неуспешная запись данных
+    //!   
     always_ff@(posedge aclk) begin : Write_FSM
         if (!aresetn)
             write_state <= WAIT_WR_TRANS;
@@ -124,13 +128,13 @@ module reg_control(
             WAIT_WR_TRANS: begin
                 if (awvalid && wvalid && good_waddr)
                     write_state <= SEND_RESP;
-                if (awvalid && wvalid && !good_waddr)
+                else if (awvalid && wvalid && !good_waddr)
                     write_state <= SEND_RESP_BAD;
-                if (awvalid && good_waddr)
+                else if (awvalid && good_waddr)
                     write_state <= WAIT_DATA;
-                if (awvalid && !good_waddr)
+                else if (awvalid && !good_waddr)
                     write_state <= WAIT_DATA_BAD;
-                if (wvalid)    
+                else if (wvalid)    
                     write_state <= WAIT_ADDR;
             end
             WAIT_ADDR: begin
@@ -175,7 +179,7 @@ module reg_control(
             bresp = 2'b00;
             bvalid = 1'b0; 
         end
-        WAIT_DATA || WAIT_DATA_BAD: begin
+        WAIT_DATA, WAIT_DATA_BAD: begin
             update_regs_data = 1'b0;
             awready = 1'b0;
             wready = 1'b1;
@@ -213,7 +217,11 @@ module reg_control(
     
     //! запись обновление регистров новыми данными
     always_ff@(posedge aclk) begin : Updata_regs_data
-        if (update_regs_data)
+        if (!aresetn)
+            for (int n = 0; n < `REGS_NUMBER; n++) begin
+                regs_data[n] <= '0;
+            end
+        else if (update_regs_data)
             for (int n = 0; n < `REGS_NUMBER; n++) begin
                 if (waddr_reg == regs_addr[n])
                     regs_data[n] <= wdata_reg;
@@ -223,6 +231,15 @@ module reg_control(
     // -----------------------------------------------------------------------------------------------------------
 
     //! конченый автомат чтения данных (read_state) 
+    //!
+    //! WAIT_RD_TRANS - ожидание начала транзакции чтения
+    //!
+    //! CHECK_ADDR - проверка корректности адреса
+    //!
+    //! SEND_DATA - успешная выдача данных
+    //!
+    //! SEND_DATA_BAD - неуспешная выдача данных
+    //!
     always_ff@(posedge aclk) begin : Read_FSM
         if (!aresetn)
             read_state <= WAIT_RD_TRANS;

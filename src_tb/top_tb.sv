@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-module master_tb ();
+module top_tb ();
 
     import uvm_pkg::*;
     import test_pkg::*; 
@@ -14,9 +14,15 @@ module master_tb ();
 
     axi_lite_if axi_lite (aclk);
     
-    assign #(CLK_PERIOD/2) clk = ~clk;
+    always
+        #(CLK_PERIOD/2) aclk = ~aclk;
 
-    sigma_delta_top dut (
+    sigma_delta_top
+    #(
+        .VALUE_WIDTH(VALUE_WIDTH)
+    )
+    dut 
+    (
         .araddr  (axi_lite.araddr),
         .arprot  (axi_lite.arprot),
         .arready (axi_lite.arready),
@@ -24,16 +30,16 @@ module master_tb ();
 
         .awaddr  (axi_lite.awaddr),
         .awprot  (axi_lite.awprot),
-        .awvalid (axi_lite.awready),
-        .awready (axi_lite.awvalid),
+        .awvalid (axi_lite.awvalid),
+        .awready (axi_lite.awready),
 
         .bready  (axi_lite.bready),
         .bresp   (axi_lite.bresp),
         .bvalid  (axi_lite.bvalid),
 
         .rdata   (axi_lite.rdata),
-        .rresp   (axi_lite.rready),
-        .rready  (axi_lite.rresp),
+        .rresp   (axi_lite.rresp),
+        .rready  (axi_lite.rready),
         .rvalid  (axi_lite.rvalid),
 
         .wdata   (axi_lite.wdata),
@@ -51,14 +57,14 @@ module master_tb ();
         uvm_config_db #(virtual axi_lite_if)::set(null, "", "axi_lite", axi_lite);
         uvm_config_db #(int unsigned)::set(null, "", "value_width", VALUE_WIDTH);
         uvm_config_db #(int unsigned)::set(null, "", "value_cycles", CYCLE_NUMBER);
-        run_test(base_test);
+        run_test("base_test");
     end
 
     always begin
-        wait(enable);
+        wait(axi_lite.aresetn);
         for (int m = 0; m < 2**VALUE_WIDTH; m++) begin
             acc_value += sigma_delta;
-            @(posedge clk); 
+            @(posedge aclk); 
         end
         final_value  = acc_value;
         acc_value  = 0;
