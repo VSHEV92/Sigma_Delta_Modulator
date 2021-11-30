@@ -1,5 +1,5 @@
 sigma_delta_core: AXI_Lite_UVM_Agent
-	vivado -mode batch -source tcl/create_project.tcl
+	vivado -mode batch -source tcl/create_tb_project.tcl
 
 
 AXI_Lite_UVM_Agent:

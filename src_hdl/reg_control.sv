@@ -21,9 +21,9 @@
 
 module reg_control(
     //! тактовый сигнал
-    input logic aclk,; 
+    input logic aclk, 
     //! сигнал сброса
-    input logic aresetn,; 
+    input logic aresetn, 
 
     //! @virtualbus awrite @dir in
     input  logic [31:0] awaddr,
@@ -225,7 +225,7 @@ module reg_control(
     //! конченый автомат чтения данных (read_state) 
     always_ff@(posedge aclk) begin : Read_FSM
         if (!aresetn)
-            read_state <= WAIT_WR_TRANS;
+            read_state <= WAIT_RD_TRANS;
         else
             unique case (read_state)
             WAIT_RD_TRANS: begin
