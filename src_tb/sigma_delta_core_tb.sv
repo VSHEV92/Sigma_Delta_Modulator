@@ -2,10 +2,10 @@
 `timescale 1ns/1ps
 module sigma_delta_core_tb();
 
-    localparam VALUE_WIDTH = 8;    //! ширина входных данных модулятора
-    localparam CYCLE_NUMBER = 5;   //! число циклов изменения значения value
-    localparam VALUE_DELAY = 1024; //! число тактов на одно значение value
-    localparam CLK_PERIOD = 10;    //! период тактового сигнала
+    localparam VALUE_WIDTH = 8;                   //! ширина входных данных модулятора
+    localparam CYCLE_NUMBER = 5;                  //! число циклов изменения значения value
+    localparam VALUE_DELAY = 4*(2**VALUE_WIDTH);  //! число тактов на одно значение value
+    localparam CLK_PERIOD = 10;                   //! период тактового сигнала
 
     bit clk;                     //! тактовый сигнал
     bit enable;                  //! сигнал вкдючения модулятора 
@@ -48,7 +48,6 @@ module sigma_delta_core_tb();
         acc_value  = 0;
     end
     
-
     //! тестируемый модуль
     sigma_delta_core #(
         .VALUE_WIDTH(VALUE_WIDTH)
