@@ -1,3 +1,6 @@
+package_ip:
+	vivado -mode batch -source tcl/package_ip.tcl
+
 sigma_delta_core: AXI_Lite_UVM_Agent
 	vivado -mode batch -source tcl/create_tb_project.tcl
 
