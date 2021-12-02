@@ -17,38 +17,34 @@ module top_tb ();
     always
         #(CLK_PERIOD/2) aclk = ~aclk;
 
-    sigma_delta_top
-    #(
-        .VALUE_WIDTH(VALUE_WIDTH)
-    )
-    dut 
+    Sigma_Delta_Modulator_0 dut
     (
-        .araddr  (axi_lite.araddr),
-        .arprot  (axi_lite.arprot),
-        .arready (axi_lite.arready),
-        .arvalid (axi_lite.arvalid),
+        .s_axi_araddr  (axi_lite.araddr),
+        .s_axi_arprot  (axi_lite.arprot),
+        .s_axi_arready (axi_lite.arready),
+        .s_axi_arvalid (axi_lite.arvalid),
 
-        .awaddr  (axi_lite.awaddr),
-        .awprot  (axi_lite.awprot),
-        .awvalid (axi_lite.awvalid),
-        .awready (axi_lite.awready),
+        .s_axi_awaddr  (axi_lite.awaddr),
+        .s_axi_awprot  (axi_lite.awprot),
+        .s_axi_awvalid (axi_lite.awvalid),
+        .s_axi_awready (axi_lite.awready),
 
-        .bready  (axi_lite.bready),
-        .bresp   (axi_lite.bresp),
-        .bvalid  (axi_lite.bvalid),
+        .s_axi_bready  (axi_lite.bready),
+        .s_axi_bresp   (axi_lite.bresp),
+        .s_axi_bvalid  (axi_lite.bvalid),
 
-        .rdata   (axi_lite.rdata),
-        .rresp   (axi_lite.rresp),
-        .rready  (axi_lite.rready),
-        .rvalid  (axi_lite.rvalid),
+        .s_axi_rdata   (axi_lite.rdata),
+        .s_axi_rresp   (axi_lite.rresp),
+        .s_axi_rready  (axi_lite.rready),
+        .s_axi_rvalid  (axi_lite.rvalid),
 
-        .wdata   (axi_lite.wdata),
-        .wready  (axi_lite.wready),
-        .wstrb   (axi_lite.wstrb),
-        .wvalid  (axi_lite.wvalid),
+        .s_axi_wdata   (axi_lite.wdata),
+        .s_axi_wready  (axi_lite.wready),
+        .s_axi_wstrb   (axi_lite.wstrb),
+        .s_axi_wvalid  (axi_lite.wvalid),
 
-        .aclk    (aclk),
-        .aresetn (axi_lite.aresetn),
+        .s_axi_aclk    (aclk),
+        .s_axi_aresetn (axi_lite.aresetn),
         
         .sigma_delta (sigma_delta)
     );
