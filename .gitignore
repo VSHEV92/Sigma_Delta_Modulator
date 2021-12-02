@@ -1,6 +1,8 @@
 AXI_Lite_UVM_Agent
-sigma_delta_modulator
+Sigma_Delta_Modulator_1.0
 *.jou 
 *.log
 *.str
 .Xil
+baremetal_example
+peta_example

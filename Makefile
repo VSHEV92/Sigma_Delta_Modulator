@@ -1,14 +1,13 @@
-package_ip:
+Sigma_Delta_Modulator_1.0:
 	vivado -mode batch -source tcl/package_ip.tcl
-
-sigma_delta_core: AXI_Lite_UVM_Agent
-	vivado -mode batch -source tcl/create_tb_project.tcl
-
 
 AXI_Lite_UVM_Agent:
 	git clone https://github.com/VSHEV92/AXI_Lite_UVM_Agent.git
-	
+
+run_test: Sigma_Delta_Modulator_1.0 AXI_Lite_UVM_Agent
+	vivado -mode batch -source tcl/create_tb_project.tcl
+
 clean:
-	rm -Rf sigma_delta_modulator		
+	rm -Rf Sigma_Delta_Modulator_1.0	 
 	rm -Rf AXI_Lite_UVM_Agent
 	rm *.jou *.log *.str
