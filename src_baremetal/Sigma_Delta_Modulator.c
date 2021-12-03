@@ -1,4 +1,4 @@
-#include "sigma_delta_core.h"
+#include "Sigma_Delta_Modulator.h"
 #include "xil_io.h"
 #include <xil_printf.h>
 
@@ -37,4 +37,15 @@ u32 sigmaDeltaEnable(SigmaDelta* sigmaDeltaInst){
 u32 sigmaDeltaDisable(SigmaDelta* sigmaDeltaInst){
 	SigmaDelta_WriteReg(sigmaDeltaInst->baseAddr, ENABLE_OFFSET, 0);
 	return 1;
+}
+
+// задать значение модулятора
+u32 sigmaDeltaSetValue(SigmaDelta* sigmaDeltaInst, u8 value){
+	SigmaDelta_WriteReg(sigmaDeltaInst->baseAddr, VALUE_OFFSET, value);
+	return 1;
+}
+
+// получить значение модулятора
+u32 sigmaDeltaGetValue(SigmaDelta* sigmaDeltaInst){
+	return SigmaDelta_ReadReg(sigmaDeltaInst->baseAddr, VALUE_OFFSET);
 }

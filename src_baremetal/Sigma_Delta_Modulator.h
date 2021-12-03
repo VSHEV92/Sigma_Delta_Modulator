@@ -30,5 +30,10 @@ u32 sigmaDeltaEnable(SigmaDelta* sigmaDeltaInst);
 // выключение модулятора
 u32 sigmaDeltaDisable(SigmaDelta* sigmaDeltaInst);
 
+// задать значение модулятора
+u32 sigmaDeltaSetValue(SigmaDelta* sigmaDeltaInst, u8 value);
+
+// получить значение модулятора
+u32 sigmaDeltaGetValue(SigmaDelta* sigmaDeltaInst);
 
 #endif

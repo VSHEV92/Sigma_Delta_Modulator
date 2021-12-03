@@ -17,6 +17,7 @@ set_property  ip_repo_paths  Sigma_Delta_Modulator_1.0 [current_project]
 update_ip_catalog -rebuild
 ipx::edit_ip_in_project -upgrade true -name edit_Sigma_Delta_Modulator_v1_0 -directory . Sigma_Delta_Modulator_1.0/component.xml
 set_property vendor vshev92 [ipx::current_core]
+set_property supported_families {kintexu Pre-Production artix7 Beta artix7l Beta qartix7 Beta qkintex7 Beta qkintex7l Beta kintexu Beta kintexuplus Beta qvirtex7 Beta virtexuplus Beta virtexuplusHBM Beta qzynq Beta zynquplus Beta kintex7 Beta kintex7l Beta spartan7 Beta versal Beta virtex7 Beta virtexu Beta virtexuplus58g Beta aartix7 Beta akintex7 Beta aspartan7 Beta azynq Beta zynq Beta} [ipx::current_core]
 
 # удаляем автоматически сгенерированные файлы
 export_ip_user_files -of_objects  [get_files Sigma_Delta_Modulator_1.0/hdl/Sigma_Delta_Modulator_v1_0.v] -no_script -reset -force -quiet

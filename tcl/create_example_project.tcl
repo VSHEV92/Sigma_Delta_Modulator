@@ -20,7 +20,7 @@ set_property board_part xilinx.com:zcu102:part0:3.4 [current_project]
 add_files -fileset constrs_1 -norecurse xdc/leds_pins.xdc
 
 # добавляем каталог с ядром модулятора
-set_property  ip_repo_paths  IP_Core [current_project]
+set_property  ip_repo_paths  Sigma_Delta_Modulator_1.0 [current_project]
 update_ip_catalog
 
 # создаем block design
