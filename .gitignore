@@ -4,8 +4,9 @@ Sigma_Delta_Modulator_1.0
 *.log
 *.str
 .Xil
-baremetal_example
-peta_example
+baremetal
+petaproject
 Packages
 temp_project
 ZCU102_example_project
+zcu102_example.xsa 

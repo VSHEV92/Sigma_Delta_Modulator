@@ -15,6 +15,13 @@ zcu102_example.xsa: Sigma_Delta_Modulator_1.0
 baremetal: zcu102_example.xsa
 	xsct -eval "source tcl/create_baremetal.tcl"; 
 
+petaproject: zcu102_example.xsa
+	source /opt/Xilinx/PetaLinux/2021.1/tool/settings.sh; \
+	petalinux-create --type project --template zynqMP --name petaproject; \
+	cd petaproject; \
+	petalinux-config --get-hw-description .. --silentconfig; \
+	petalinux-create -t modules --name miscsigmadelatdriver; \
+	
 clean:
 	rm -Rf Sigma_Delta_Modulator_1.0
 	rm -Rf ZCU102_example_project
