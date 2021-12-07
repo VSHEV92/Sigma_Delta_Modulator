@@ -6,9 +6,19 @@
 #include <linux/miscdevice.h>
 #include <linux/uaccess.h>
 #include <linux/io.h>
+#include <linux/ioctl.h>	
 
 #define SIGMADELTA_ENABLE_OFFSET   (0x0)
 #define SIGMADELTA_VALUE_OFFSET    (0x4)
+
+struct sigma_delta_data {
+	unsigned int enable;
+	unsigned int value;
+};
+
+#define IOCTL_MAGIC 'c'
+#define IOCTL_READ_REGS  _IOR(IOCTL_MAGIC, 1, struct sigma_delta_data*) // чтение регистров
+#define IOCTL_WRITE_REGS _IOW(IOCTL_MAGIC, 2, struct sigma_delta_data*) // запись регистров
 
 /**
  * Структура с описанием параметров модулятора
@@ -76,7 +86,47 @@ static ssize_t sigma_delta_write(struct file *file, const char __user *buf, size
             
     return len; 
 }
- 
+
+/**
+ * системный вызов ioctl
+ */ 
+static long sigma_delta_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+    struct sigma_delta_data data;
+
+	// получаем дискриптор модуялтора
+	struct sigma_delta_instance * ip = container_of(file->private_data, struct sigma_delta_instance, miscdev);
+
+	switch(cmd) {
+		// запись регистров
+		case IOCTL_WRITE_REGS:
+				if (copy_from_user(&data, (struct sigma_delta_data __user *)arg, sizeof(data))){
+					pr_err("Cannot copy from user\n");
+					return -1;
+				}
+				// включение ядро
+				if (data.enable)
+					iowrite32(1, ip->regs + SIGMADELTA_ENABLE_OFFSET); 
+	            else
+					iowrite32(0, ip->regs + SIGMADELTA_ENABLE_OFFSET);
+				// значение для модулятора
+				if (data.value > 255)
+					iowrite32(255, ip->regs + SIGMADELTA_VALUE_OFFSET);
+				else
+					iowrite32(data.value, ip->regs + SIGMADELTA_VALUE_OFFSET);
+				break;
+		// чтение регистров		
+		case IOCTL_READ_REGS:
+				data.enable = ioread32(ip->regs + SIGMADELTA_ENABLE_OFFSET);
+				data.value = ioread32(ip->regs + SIGMADELTA_VALUE_OFFSET);
+				if (copy_to_user((struct sigma_delta_data __user *)arg, &data, sizeof(data))){
+					pr_err("Cannot copy to user\n");
+					return -1;
+	       		}
+				break;
+	}
+	return 0;
+}
 
 /**
  * Оперции над дескриптором файла
@@ -86,6 +136,7 @@ static const struct file_operations fops = {
     .write          = sigma_delta_write,
     .open           = sigma_delta_open,
     .release        = sigma_delta_close,
+	.unlocked_ioctl = sigma_delta_ioctl,
 };
 
 /**
@@ -135,8 +186,7 @@ static int sigma_delta_probe(struct platform_device *pdev){
     }
 	
 	platform_set_drvdata(pdev, ip_core);
-
-    pr_info("Sigma Delta init done!!!\n");
+	
 	return 0;
 }
 

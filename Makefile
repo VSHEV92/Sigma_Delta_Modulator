@@ -21,6 +21,12 @@ petaproject: zcu102_example.xsa
 	cd petaproject; \
 	petalinux-config --get-hw-description .. --silentconfig; \
 	petalinux-create -t modules --name miscsigmadelatdriver; \
+	cp -r ../src_linux/miscsigmadelatdriver/ project-spec/meta-user/recipes-modules; \
+	petalinux-create -t apps --template c --name libsigmadelta; \
+	cp -r ../src_linux/libsigmadelta/ project-spec/meta-user/recipes-apps;
+	petalinux-create -t apps --template c --name blinkwave; \
+	cp -r ../src_linux/blinkwave/ project-spec/meta-user/recipes-apps; \
+	
 	
 clean:
 	rm -Rf Sigma_Delta_Modulator_1.0
