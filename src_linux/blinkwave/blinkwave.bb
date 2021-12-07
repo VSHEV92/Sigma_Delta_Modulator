@@ -13,8 +13,10 @@ SRC_URI = "file://blinkwave.c \
 
 S = "${WORKDIR}"
 
+DEPENDS = " sigmadelta"
+
 do_compile() {
-	     oe_runmake
+        ${CC} ${CFLAGS} ${LDFLAGS} -o blinkwave blinkwave.c -lsigmadelta -lm
 }
 
 do_install() {

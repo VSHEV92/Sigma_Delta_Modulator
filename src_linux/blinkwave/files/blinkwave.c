@@ -1,40 +1,84 @@
 #include <stdio.h>
-#include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <math.h>
+#include <SIGMADELTA/sigmadelta.h>
 
-struct sigma_delta_data {
-	unsigned int enable;
-	unsigned int value;
-};
+#define PI 3.14159265
 
-#define IOCTL_MAGIC 'c'
-#define IOCTL_READ_REGS  _IOR(IOCTL_MAGIC, 1, struct sigma_delta_data*) // чтение регистров
-#define IOCTL_WRITE_REGS _IOW(IOCTL_MAGIC, 2, struct sigma_delta_data*) // запись регистров
- 
+// число модуляторов
+#define IP_NUMB 8
+
+// число отсчетов в волне
+#define WAVE_LEN 256
+
+// запустить волну справа налево
+void startWave(unsigned int* waveSamples, int* sigmaDeltaArray, int leftDirection){
+	for (int j = 0; j<WAVE_LEN*2; j++){
+		if (leftDirection) {
+			for (int i = 0; i<IP_NUMB; i++)
+				sigmaDeltaSetValue(sigmaDeltaArray[i], waveSamples[j+i*WAVE_LEN/IP_NUMB]);
+		} else {
+			for (int i = 0; i<IP_NUMB; i++)
+				sigmaDeltaSetValue(sigmaDeltaArray[IP_NUMB-1-i], waveSamples[j+i*WAVE_LEN/IP_NUMB]);
+		}
+		usleep(5000);
+	}
+}
+
+void startWaveLeft(unsigned int* waveSamples, int* sigmaDeltaArray){
+	startWave(waveSamples, sigmaDeltaArray, 1);
+}
+
+void startWaveRigth(unsigned int* waveSamples, int* sigmaDeltaArray){
+	startWave(waveSamples, sigmaDeltaArray, 0);
+}
+
 int main()
 {
-    int fd;
-    struct sigma_delta_data mod_data;
+    int sigmaDeltaArray[IP_NUMB];
 
-    mod_data.enable = 1;
-    mod_data.value = 200;
-    
-    fd = open("/dev/80000000.Sigma_Delta_Modulator", O_RDWR);
-    if(fd < 0) {
-        printf("Cannot open device file...\n");
-        return 0;
+    // массив отсчетов волны
+	unsigned int waveSamples[WAVE_LEN*3];
+
+	// -------------------------------------------------------------------
+	// инициализация отсчетов волны
+	for (int i = 0; i<WAVE_LEN*3; i++)
+		waveSamples[i] = 0;
+
+	for (int i = WAVE_LEN; i<WAVE_LEN+WAVE_LEN/2; i++)
+		waveSamples[i] = WAVE_LEN * 0.9 * sin((i-WAVE_LEN)*PI/WAVE_LEN);
+
+	for (int i = WAVE_LEN+WAVE_LEN/2; i<WAVE_LEN*2; i++)
+		waveSamples[i] = WAVE_LEN * 0.9 * sin((WAVE_LEN*2 - i)*PI/WAVE_LEN);
+
+	// -------------------------------------------------------------------
+	// инициализация ядер
+    sigmaDeltaArray[0] = open("/dev/80000000.Sigma_Delta_Modulator", O_RDWR);
+    sigmaDeltaArray[1] = open("/dev/80010000.Sigma_Delta_Modulator", O_RDWR);
+    sigmaDeltaArray[2] = open("/dev/80020000.Sigma_Delta_Modulator", O_RDWR);
+    sigmaDeltaArray[3] = open("/dev/80030000.Sigma_Delta_Modulator", O_RDWR);
+    sigmaDeltaArray[4] = open("/dev/80040000.Sigma_Delta_Modulator", O_RDWR);
+    sigmaDeltaArray[5] = open("/dev/80050000.Sigma_Delta_Modulator", O_RDWR);
+    sigmaDeltaArray[6] = open("/dev/80060000.Sigma_Delta_Modulator", O_RDWR);
+    sigmaDeltaArray[7] = open("/dev/80070000.Sigma_Delta_Modulator", O_RDWR);
+
+    for (int i = 0; i < IP_NUMB; i++)
+        if(sigmaDeltaArray[i] < 0) {
+            printf("Cannot open device file...\n");
+            return -1;
+        }
+    for (int i = 0; i < IP_NUMB; i++){
+        sigmaDeltaSetValue(sigmaDeltaArray[i], 0);
+        sigmaDeltaEnable(sigmaDeltaArray[i]);
     }
 
-    printf("Write Value to Driver\n");
-    ioctl(fd, IOCTL_WRITE_REGS, (struct sigma_delta_data*) &mod_data); 
-
-    printf("Reading Value from Driver\n");
-    ioctl(fd, IOCTL_READ_REGS, (struct sigma_delta_data*) &mod_data);
-    printf("Value is %d %d\n", mod_data.enable, mod_data.value);
-
-    printf("Closing Driver\n");
-    close(fd);
+	// -------------------------------------------------------------------
+	// запуск бегущей волны
+	while(1){
+		startWaveLeft(waveSamples, sigmaDeltaArray);
+		startWaveRigth(waveSamples, sigmaDeltaArray);
+	}
 
     return 0;    
 }
