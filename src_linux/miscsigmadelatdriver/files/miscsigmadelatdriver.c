@@ -30,7 +30,6 @@ struct sigma_delta_data {
 #define IOCTL_READ_REGS  _IOR(IOCTL_MAGIC, 1, struct sigma_delta_data*) // чтение регистров
 #define IOCTL_WRITE_REGS _IOW(IOCTL_MAGIC, 2, struct sigma_delta_data*) // запись регистров
 
-
 /**
  * Запись в атрибут
  */
