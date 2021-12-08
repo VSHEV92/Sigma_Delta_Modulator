@@ -6,10 +6,20 @@
 #include <linux/miscdevice.h>
 #include <linux/uaccess.h>
 #include <linux/io.h>
-#include <linux/ioctl.h>	
+#include <linux/ioctl.h>
+#include <linux/string.h>	
 
 #define SIGMADELTA_ENABLE_OFFSET   (0x0)
 #define SIGMADELTA_VALUE_OFFSET    (0x4)
+
+/**
+ * Структура с описанием параметров модулятора
+ */
+struct sigma_delta_instance {
+	struct clk *clk;
+	struct miscdevice miscdev;
+	void __iomem *regs;
+};
 
 struct sigma_delta_data {
 	unsigned int enable;
@@ -20,14 +30,52 @@ struct sigma_delta_data {
 #define IOCTL_READ_REGS  _IOR(IOCTL_MAGIC, 1, struct sigma_delta_data*) // чтение регистров
 #define IOCTL_WRITE_REGS _IOW(IOCTL_MAGIC, 2, struct sigma_delta_data*) // запись регистров
 
+
 /**
- * Структура с описанием параметров модулятора
+ * Запись в атрибут
  */
-struct sigma_delta_instance {
-	struct clk *clk;
-	struct miscdevice miscdev;
-	void __iomem *regs;
-};
+static ssize_t sigma_delta_attr_write(struct device* dev, struct device_attribute* attr, const char* buf, size_t count){
+	unsigned long data;
+	struct sigma_delta_instance * ip = container_of(dev_get_drvdata(dev), struct sigma_delta_instance, miscdev);
+
+	if(!sscanf(buf,"%lu",&data))
+		return count;
+
+	if (strcmp(attr->attr.name,"value") == 0){
+		if (data>255)
+			iowrite32(255, ip->regs + SIGMADELTA_VALUE_OFFSET);
+		else
+			iowrite32(data, ip->regs + SIGMADELTA_VALUE_OFFSET);
+	}
+
+	if (strcmp(attr->attr.name,"enable") == 0){
+		if (data)
+			iowrite32(1, ip->regs + SIGMADELTA_ENABLE_OFFSET); 
+		else
+			iowrite32(0, ip->regs + SIGMADELTA_ENABLE_OFFSET);
+	}
+	
+	return count;
+}
+
+/**
+ * Чтение из атрибута
+ */
+static ssize_t sigma_delta_attr_read(struct device* dev, struct device_attribute* attr, char *buf){
+	unsigned long data;
+	struct sigma_delta_instance * ip = container_of(dev_get_drvdata(dev), struct sigma_delta_instance, miscdev);
+
+	if (strcmp(attr->attr.name,"value") == 0)
+		data = ioread32(ip->regs + SIGMADELTA_VALUE_OFFSET);
+	
+	if (strcmp(attr->attr.name,"enable") == 0)
+		data = ioread32(ip->regs + SIGMADELTA_ENABLE_OFFSET);
+
+	return sprintf(buf, "%lu\n", data);
+}
+
+static DEVICE_ATTR(enable, 0660, sigma_delta_attr_read, sigma_delta_attr_write);
+static DEVICE_ATTR(value, 0660, sigma_delta_attr_read, sigma_delta_attr_write);
 
 /**
  * Открытие файла
@@ -185,6 +233,15 @@ static int sigma_delta_probe(struct platform_device *pdev){
 	    return status;
     }
 	
+	// создание атрибутов класса
+	status = device_create_file(ip_core->miscdev.this_device, &dev_attr_enable);
+    if (status < 0)
+        pr_warn("failed to create write /sys endpoint - continuing without\n");
+    
+    status = device_create_file(ip_core->miscdev.this_device, &dev_attr_value);
+    if (status < 0)
+        pr_warn("failed to create reset /sys endpoint - continuing without\n");
+    
 	platform_set_drvdata(pdev, ip_core);
 	
 	return 0;
@@ -198,6 +255,9 @@ static int sigma_delta_remove(struct platform_device *pdev){
 
 	dev_info(&pdev->dev, "Module Remove Function\n");
 	clk_disable_unprepare(ip->clk);
+	device_remove_file(ip->miscdev.this_device, &dev_attr_enable);
+    device_remove_file(ip->miscdev.this_device, &dev_attr_value);
+    
 	misc_deregister(&ip->miscdev);
 	
     return 0;
